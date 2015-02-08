@@ -3,6 +3,7 @@ import os
 import sys
 from scipy import linalg
 import numpy as np
+import math
 
 """ Create a script that will wrangle and format our IO data
     and then put it into a scipy matrix, which we can then save
@@ -10,8 +11,6 @@ import numpy as np
 
 """
 
-
-[481026,	580284,	496708,	1206919,	5787100,	1458137,	1392835,	1024517,	1223897,	5133698,	3691586,	2564883,	1218544,	740624,	2706124]
 
 def save_table(someFile, theDelimiter=',',startPoint=2,endPoint=17):
     """ loads data from csv file
@@ -22,14 +21,56 @@ def save_table(someFile, theDelimiter=',',startPoint=2,endPoint=17):
     theDelimiter char: character to split columns of data, set to ','.
     
     """
-    #afile = open(someFile, 'rb')
-    #data = csv.reader(afile, delimiter=theDelimiter)
-    data = np.genfromtxt(someFile,dtype=None,delimiter=theDelimiter,skip_header=1)
-    table = [row[startPoint:endPoint] for row in data]
+    # divide 1.0 by the elements so that when I use this vector in the dot product, I can use dot product and not have to iterate
+    # through each element in the matrix.
+    q = [1.0/389891,1.0/698562,1.0/240200,1.0/241677,1.0/3711464,1.0/648278,1.0/128054,1.0/644228,1.0/543301,1.0/2218888,1.0/2684780,1.0/72190,1.0/281067,1.0/211354,1.0/86188]
+    r = [1.0/481026,1.0/580284, 1.0/496708, 1.0/1206919, 1.0/5787100, 1.0/1458137, 1.0/1392835, 1.0/1024517, 1.0/1223897, 1.0/5133698, 1.0/3691586,1.0/2564883,1.0/1218544,1.0/740624,1.0/2706124]
+    #vec = np.matrix([[item] for item in r])
+    afile = open(someFile, 'rb')
+    data = csv.reader(afile, delimiter=theDelimiter)
+    with open('betterData.csv','wb') as csvfile:
+        target = csv.writer(csvfile, delimiter=',')
+        for row in data:
+            print row[2:17]
+            target.writerow(row[2:17])
 
-    A = np.matrix(table)
-    A = A.astype(int)
+    #target.close()
+    #data.close()
+    data = np.genfromtxt('betterData.csv',dtype=None,delimiter=theDelimiter,skip_header=1)
+    #for row in data:
+    #    print row[2:]
+    table = [row for row in data]
+    print "printing table..\n"
+    #print table
+    #print('\n\ntable before loop...')
+    #print table
+    table2 = []
+    for row in table:
+        i = 0
+        row2 = []
+        for item in row:
+            item = item*r[i]
+            row2.append(math.fabs(float(item)))
+            i += 1
+            #print row2
+        print row2
+        table2.append(row2)
+    print "\n\ntable2 after loop"
+    print table2
+    
+    A = np.matrix(table2)
+    A = A.astype(float)
     np.save('myMatrix',A)
+    print A
+    print "printing vec now.."
+    vec = np.matrix([[1.0/float(item)] for item in r])
+    print vec
+    B = A.dot(vec)
+    #B = np.load('myMatrix.npy')
+    print("\nB:")
+    print B
+    print("\n vec - B")
+    print vec - B
 
 
 
