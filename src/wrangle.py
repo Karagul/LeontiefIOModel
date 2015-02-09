@@ -23,7 +23,9 @@ def save_table(someFile, theDelimiter=',',startPoint=2,endPoint=17):
     """
     # divide 1.0 by the elements so that when I use this vector in the dot product, I can use dot product and not have to iterate
     # through each element in the matrix.
-    q = [1.0/389891,1.0/698562,1.0/240200,1.0/241677,1.0/3711464,1.0/648278,1.0/128054,1.0/644228,1.0/543301,1.0/2218888,1.0/2684780,1.0/72190,1.0/281067,1.0/211354,1.0/86188]
+    #q = [1.0/389891,1.0/698562,1.0/240200,1.0/241677,1.0/3711464,1.0/648278,1.0/128054,1.0/644228,1.0/543301,1.0/2218888,1.0/2684780,1.0/72190,1.0/281067,1.0/211354,1.0/86188]
+    # Since multiplacation is approximately 33% faster than 
+    # Division is in Python
     x = [1.0/481026,1.0/580284, 1.0/496708, 1.0/1206919, 1.0/5787100, 1.0/1458137, 1.0/1392835, 1.0/1024517, 1.0/1223897, 1.0/5133698, 1.0/3691586,1.0/2564883,1.0/1218544,1.0/740624,1.0/2706124]
     #vec = np.matrix([[item] for item in r])
     afile = open(someFile, 'rb')
@@ -39,13 +41,14 @@ def save_table(someFile, theDelimiter=',',startPoint=2,endPoint=17):
     data = np.genfromtxt('betterData.csv',dtype=None,delimiter=theDelimiter,skip_header=1)
     #for row in data:
     #    print row[2:]
-    table = [row for row in data]
+    U = [row for row in data]
+    print "U:",U
     print "printing table..\n"
-    #print table
-    #print('\n\ntable before loop...')
-    #print table
+
+    # table2 will contain the rates
+    # at which each sector consumes.
     table2 = []
-    for row in table:
+    for row in U:
         i = 0
         row2 = []
         for item in row:
@@ -57,15 +60,19 @@ def save_table(someFile, theDelimiter=',',startPoint=2,endPoint=17):
         table2.append(row2)
     print "\n\ntable2 after loop"
     print table2
-    
-    A = np.matrix(table2)
-    A = A.astype(float)
-    np.save('myMatrix',A)
-    print A
+
+    # transform table2 into a useable format
+    # this will be C
+    C = np.matrix(table2)
+    C = C.astype(float)
+    np.save('myMatrix',C)
+    print C
     print "printing vec now.."
-    vecx = np.matrix([[1.0/float(item)] for item in x])
+
+    # put x back into it's original form, not 1.0/val
+    vecx = np.matrix([[1.0/float(item)] for item in x]) 
     print vecx
-    B = A.dot(vecx)
+    B = C.dot(vecx)
     #B = np.load('myMatrix.npy')
     print("\nB:")
     print B
@@ -79,9 +86,9 @@ def save_table(someFile, theDelimiter=',',startPoint=2,endPoint=17):
 
     print "..."
     # create identity matrix by computing A . inverse(A)
-    I = A.dot(A.I)
+    I = C.dot(C.I)
 
-    prod = (I - A)
+    prod = (I - C)
     result = prod.I
     print result.dot(vecd)
     print "The above should be equal to vecx"
